@@ -3,9 +3,23 @@ import os
 from os import listdir
 from os.path import isfile,  join
 
+import  sys
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
+def r_in(hint):
+    return raw_input(hint.encode(sys.stdin.encoding))
+
+def r_out(content):
+    return content.encode(sys.stdout.encoding)
+
+
+def r_print(content):
+    print r_out(content)
+
 # 要替换的字符串
-org_str = "to_replace"
-rst_str = "result"
+org_str = r_in("请输入要替换掉的字符:")
+rst_str = r_in("将其修改为:")
 
 print "replace \"{}\" to \"{}\"".format(org_str, rst_str)
 
