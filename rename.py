@@ -7,6 +7,13 @@ import  sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+# 要替换的字符串
+# --------------------------------------
+org_str = u""
+rst_str = u""
+path = u""
+# --------------------------------------
+
 # hint: unicode
 # return: unicode
 def r_in(hint):
@@ -20,32 +27,47 @@ def r_out(content):
 		ret = content.encode(sys.stdout.encoding)
 	except BaseException, e:
 		# print "Cannot print as wish, try print unicode...", type(e), str(e)
-		ret = content.encode("utf-8")
+		ret = repr(content)
 	return ret
 
 # unicode -> str 并打印
 def r_print(content):
     print r_out(content)
 
-# 要替换的字符串
-# --------------------------------------
-org_str = u"™"
-rst_str = u""
-# --------------------------------------
+def uni_chk(content):
+ 	if(content.startswith("\\u")): # \u 开头
+		try:
+			content = unichr(int(content[2:], 16))
+			print u"自动转换为 unicode 字符: ", r_out(content)
+		except BaseException, e:
+			print u"Unicode trans error: ", type(e), str(e)
+			content = ""
+	return content
+
+# 输入要执行的目录
+path = r_in(u"请输入目标目录: ")
+if len(path) <= 0:
+	print u"未输入, 将在当前目录进行操作!"
+
+# 输入要修改的字符
 while len(org_str)<=0 :
 	org_str = r_in(u"请输入要替换掉的字符:")
+	org_str = uni_chk(org_str)
 
 # 打印一个 unicode，在打印一个 str
 print u"要修改的字符: ", r_out(org_str)
 rst_str = r_in(u"将其修改为:")
+rst_str = uni_chk(rst_str)
 
 # 打印一整个 str, decode 在内部完成s
 print r_out(org_str)
 print r_out(rst_str)
 # print "replace \"{}\" to \"{}\"".format(r_out(org_str), r_out(rst_str))
 
-path = u"{}".format(os.getcwd())
-print "current path: {}".format(path)
+# 读取当前目录，返回值是 str，按照 系统编码 解码成 unicode 使用
+if(len(path) <= 0):  #当前目录
+	path = os.getcwd().decode(sys.stdin.encoding)
+print "current path: {}".format(r_out(path))
 print "-----------------\n"
 
 i = 0
@@ -56,8 +78,12 @@ for f in listdir(path):
 	if org_str in f :
 		i = i+1
 		# print "{} contains 'test' - {}".format(f,  i)
-		file = join(path, f.encode("utf-8","ignore")) # 手动 encode
+		# file = join(path, f.encode("utf-8","ignore")) # 手动 encode -> str
+		file = join(path, f)
 		new_file = join(path, f.replace(org_str, rst_str))
+		if file.endswith(u".py") or file.endswith(u".exe"):
+			print u"PY file or EXE file, skip!"
+			continue
 		if file != new_file:
 			print "path: {}\nnew path: {}\n".format(r_out(file), r_out(new_file))
 			try:
