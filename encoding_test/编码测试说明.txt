@@ -1,0 +1,35 @@
+
+1. raw_input 与 raw_output 的中文问题
+
+Windows 的命令行输入输出默认都是 cp936(GBK) 编码（文本编辑器默认可能也是 GBK），但 GBK 的适用性不如 utf-8，因此通常在 python 文件头部注明
+
+ # -*- coding: utf-8 -*- 
+
+这样造成的问题是，编辑器认为的编码(utf-8)和命令行的编码(GBK)不一致，所以出现乱码甚至报错
+
+python 内部处理数据都是 unicode 编码来表示的，在编码（encoding）的过程中，py2 默认将 unicode 编码为 ascii，这样显然会出现字符无法覆盖的情况。
+
+sys.setdefaultencoding("utf-8")
+
+这句的意思就是告诉 py2，编码时默认编码为 utf-8
+
+
+
+raw_input(hint.encode(sys.stdin.encoding))
+
+将 unicode 编码为 (GBK) 之后进行输出（到命令行）
+
+
+
+2. 命令行输入 unicode 字符
+
+真正蛋疼的问题是，使用 windows 命令行难以输入 unicode 字符
+
+当 raw_input 在命令行里输入（粘贴）"™" 之后，这个字符变成了 "?"，经测试它就是字符 "?"，而不再是"™"
+到这里几乎无解了，我永远无法利用命令行输入"™"这个字符（除非修改cmd的参数）
+
+
+3. 结论
+a. 代码里所有字符串按 unicode 处理，需要输出的时候手动按照 sys.stdout.encoding 解码为 str，输入的时候统一把 str encode 成 unicode 处理
+b. 对于 win 输入 unicode 字符的情况无解，只能把参数输入从命令行改为写死在代码里
+c. 日后也许使用 GUI 代替命令行输入，再说吧。

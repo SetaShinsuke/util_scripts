@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['rename.py'],
-             pathex=['C:\\Users\\24783\\Documents\\GitStuff\\RenameScript'],
+             pathex=['C:\\Users\\24783\\Documents\\GitStuff\\UtilScripts\\RenameScript'],
              binaries=[],
              datas=[],
              hiddenimports=[],
