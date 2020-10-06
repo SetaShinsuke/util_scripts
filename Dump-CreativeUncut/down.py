@@ -8,8 +8,12 @@ import sys
 import urllib.request
 from datetime import datetime
 # import chardet
-
 import requests
+
+import local_properties
+
+import socket
+socket.setdefaulttimeout(5)
 
 # reload(sys)
 # sys.setdefaultencoding('utf-8')
@@ -19,7 +23,8 @@ print("out: {}".format(sys.stdout.encoding))
 
 break_line = "----n----"
 referer_host = "https://www.creativeuncut.com/"
-proxy_server = "'192.168.50.96:8787'"
+proxy_server = local_properties.PROXY_SERVER
+print("proxy_server: ", proxy_server)
 
 def r_in(hint):
     # return input(hint.encode(sys.stdin.encoding))
@@ -69,7 +74,10 @@ for img_url in img_urls:
     # 添加 referer 并下载
     opener.addheaders = [('Referer', referer_host)]
     urllib.request.install_opener(opener)
-    resp = urllib.request.urlretrieve(final_url, "{}\{}".format(dir_path, file_name))
+    try:
+        resp = urllib.request.urlretrieve(final_url, "{}\{}".format(dir_path, file_name))
+    except:
+        pass
     # print("file size: {}".format(resp.headers['content-length']))
     downloaded += 1
 r_print(u"Download finished {}/{}!\nSaved at \{}".format(downloaded, total, dir_path))
