@@ -1,48 +1,55 @@
 # -*- coding: utf-8 -*-
 import os
-import re
 import urllib.request
+import sys
+
+sys.path.append('../')
+from Common import utils
 
 CONFIG_KEY_PROXY = "proxy"
 CONFIG_KEY_REFERER = "referer"
 
+FILE_NAME = 'file_name'
+URL = 'url'
+
 
 def filter_fun(item):
-    return item.startswith("http")
+    return type(item) is dict and URL in item.keys() and item[URL].startswith("http")
 
 
-# config: 代理服务器等
-def download_by_strs(urls_str, separator, dir_path, config=None):
-    img_urls = urls_str.split(separator)
-    download_by_list(img_urls, dir_path, config)
-
-
-def download_by_list(img_urls, dir_path, config=None):
+def download(task_list, dir_path, config=None):
+    '''
+    :param tasks: 下载任务信息[{'url': url, 'file_name': file_name}, {...}, ...]
+    :param dir_path: 下载目录
+    :param config: 下载配置, proxy 与 referer 等
+    :return:
+    '''
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
-    img_urls = list(filter(filter_fun, img_urls))
-    total = len(img_urls)
+    tasks = list(filter(filter_fun, task_list))
+    total = len(tasks)
     downloaded = 0
     failed = 0
     max_amount = total
     # max_amount = 3
     print("max_amount: {}".format(max_amount))
-    for img_url in img_urls:
+    for task in tasks:
         if downloaded >= max_amount:
             break
-        print("url: {}".format(img_url))
-        file_name = img_url.split('/')[-1].replace('\\', '_').replace('/', '_')
-        file_name = re.sub('[\/:*?"<>|]', '-', file_name)
-        if (len(file_name) > 150): # 文件名超长
-            file_name = file_name[-149:]
-        if os.path.exists("{}\{}".format(dir_path, file_name)): #检查重名
+        file_url = task[URL]
+        print("url: {}".format(file_url))
+
+        if FILE_NAME in task.keys():
+            file_name = task[FILE_NAME]
+        else:
+            file_name = file_url.split('/')[-1].split('?')[0]
+            file_name = utils.verify_file_name(file_name)
+
+        if os.path.exists("{}\{}".format(dir_path, file_name)):  # 检查重名
             name = file_name.split(".")[0]
             file_name = file_name.replace(name, "{}_{}".format(name, downloaded))
-        print("Downloading {}/{} : {}".format(downloaded + 1, total, file_name))
-        final_url = img_url
 
         opener = urllib.request.build_opener()
-        print("config: {}".format(config))
         if config is not None and CONFIG_KEY_PROXY in config.keys():
             # 添加 http 代理
             proxy_server = config[CONFIG_KEY_PROXY]
@@ -57,7 +64,7 @@ def download_by_list(img_urls, dir_path, config=None):
         urllib.request.install_opener(opener)
 
         try:
-            resp = urllib.request.urlretrieve(final_url, "{}\{}".format(dir_path, file_name))
+            resp = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name))
         except Exception as err:
             print("----\nSomething wrong happened!")
             print(type(err))

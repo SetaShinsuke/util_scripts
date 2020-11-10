@@ -8,3 +8,4 @@
 /Demo/download
 /.idea
 /Common/local_properties.py
+/Common/__pycache__
