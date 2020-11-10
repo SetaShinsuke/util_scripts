@@ -31,8 +31,23 @@ def download(task_list, dir_path, config=None):
     downloaded = 0
     failed = 0
     max_amount = total
-    # max_amount = 3
+    # max_amount = 1
     print("max_amount: {}".format(max_amount))
+
+    opener = urllib.request.build_opener()
+    if config is not None and CONFIG_KEY_PROXY in config.keys():
+        # 添加 http 代理
+        proxy_server = config[CONFIG_KEY_PROXY]
+        proxy = urllib.request.ProxyHandler({'http': proxy_server})
+        opener = urllib.request.build_opener(proxy)
+        print("使用代理: {}".format(proxy_server))
+    if config is not None and CONFIG_KEY_REFERER in config.keys():
+        # 添加 referer
+        referer_host = config[CONFIG_KEY_REFERER]
+        opener.addheaders = [('Referer', referer_host)]
+        print("使用referer: {}".format(referer_host))
+    urllib.request.install_opener(opener)
+
     for task in tasks:
         if downloaded >= max_amount:
             break
@@ -48,31 +63,19 @@ def download(task_list, dir_path, config=None):
         if os.path.exists("{}\{}".format(dir_path, file_name)):  # 检查重名
             name = file_name.split(".")[0]
             file_name = file_name.replace(name, "{}_{}".format(name, downloaded))
+        print("file_name: {}".format(file_name))
 
-        opener = urllib.request.build_opener()
-        if config is not None and CONFIG_KEY_PROXY in config.keys():
-            # 添加 http 代理
-            proxy_server = config[CONFIG_KEY_PROXY]
-            proxy = urllib.request.ProxyHandler({'http': proxy_server})
-            opener = urllib.request.build_opener(proxy)
-            print("使用代理: {}".format(proxy_server))
-        if config is not None and CONFIG_KEY_REFERER in config.keys():
-            # 添加 referer
-            referer_host = config[CONFIG_KEY_REFERER]
-            opener.addheaders = [('Referer', referer_host)]
-            print("使用referer: {}".format(referer_host))
-        urllib.request.install_opener(opener)
-
-        try:
-            resp = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name))
-        except Exception as err:
-            print("----\nSomething wrong happened!")
-            print(type(err))
-            print(err.args)
-            print(err)
-            print("----")
-            failed += 1
-            pass
+        # todo: 开启下载
+        # try:
+        #     resp = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name))
+        # except Exception as err:
+        #     print("----\nSomething wrong happened!")
+        #     print(type(err))
+        #     print(err.args)
+        #     print(err)
+        #     print("----")
+        #     failed += 1
+        #     pass
         downloaded += 1
     print(u"Download finished {}/{}!\nSaved at \{}".format(downloaded, total, dir_path))
     if failed > 0:
