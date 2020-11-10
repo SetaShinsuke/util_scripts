@@ -11,3 +11,7 @@
 /Common/__pycache__
 /MangaCrawler/Site_Manhuagui/download
 /Common/test.webp
+/Common/build
+/Webp2jpg/__pycache__
+/Webp2jpg/build
+/Webp2jpg/webp2jpg.spec

@@ -1,0 +1,3 @@
+Webp2jpg
+本程序用于将 webp 格式转换为 jpg 格式
+按提示输入文件目录后会找寻目录下的 webp 格式文件，转换 jpg 格式放入 converted 目录中
