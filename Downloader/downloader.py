@@ -30,7 +30,7 @@ def download(task_list, dir_path, config=None):
     tasks = list(filter(filter_fun, task_list))
     total = len(tasks)
     downloaded = 0
-    failed = 0
+    failed = []
     max_amount = total
     # max_amount = 1
     print("max_amount: {}".format(max_amount))
@@ -75,9 +75,14 @@ def download(task_list, dir_path, config=None):
             print(err.args)
             print(err)
             print("----")
-            failed += 1
+            failed.append(task)
             pass
         downloaded += 1
     print(u"Download finished {}/{}!\nSaved at \{}".format(downloaded, total, dir_path))
-    if failed > 0:
-        print("{}\{} download failed!!".format(failed, total))
+    if len(failed) > 0:
+        print("{}\{} download failed!!".format(len(failed), total))
+        print("failed tasks: ")
+        for t in failed:
+            print(t)
+    return failed
+
