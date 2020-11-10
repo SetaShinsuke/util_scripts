@@ -24,6 +24,7 @@ def download(task_list, dir_path, config=None):
     :param config: 下载配置, proxy 与 referer 等
     :return:
     '''
+    print("----------- Start Download -----------")
     if not os.path.exists(dir_path):
         os.makedirs(dir_path)
     tasks = list(filter(filter_fun, task_list))
@@ -66,16 +67,16 @@ def download(task_list, dir_path, config=None):
         print("file_name: {}".format(file_name))
 
         # todo: 开启下载
-        # try:
-        #     resp = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name))
-        # except Exception as err:
-        #     print("----\nSomething wrong happened!")
-        #     print(type(err))
-        #     print(err.args)
-        #     print(err)
-        #     print("----")
-        #     failed += 1
-        #     pass
+        try:
+            resp = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name))
+        except Exception as err:
+            print("----\nSomething wrong happened!")
+            print(type(err))
+            print(err.args)
+            print(err)
+            print("----")
+            failed += 1
+            pass
         downloaded += 1
     print(u"Download finished {}/{}!\nSaved at \{}".format(downloaded, total, dir_path))
     if failed > 0:
