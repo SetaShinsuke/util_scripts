@@ -3,6 +3,7 @@ from datetime import datetime
 import sys
 sys.path.append('../')
 from Downloader import downloader
+from Common import local_properties
 
 
 seperator = "---n---"
@@ -25,5 +26,5 @@ img_urls += seperator
 
 dir_path = "download\{}_{}".format("download_test", datetime.now().microsecond)
 downloader.download_by_strs(img_urls, seperator, dir_path)
-# config = {'proxy': 'http://192.168.50.96:8787', 'referer': 'https://www.google.com/'}
+config = {'proxy':  local_properties.PROXY_SERVER, 'referer': 'https://www.google.com/'}
 # downloader.download_by_strs(img_urls, seperator, dir_path, config)
