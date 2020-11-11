@@ -6,9 +6,13 @@ import sys
 sys.path.append('../')
 from Common import utils
 
+MAX_RETRY = 2
+
 CONFIG_KEY_PROXY = "proxy"
 CONFIG_KEY_REFERER = "referer"
+CONFIG_KEY_UA = "ua"
 
+DOWNLOAD_DIR = 'dir'
 FILE_NAME = 'file_name'
 URL = 'url'
 
@@ -17,7 +21,7 @@ def filter_fun(item):
     return type(item) is dict and URL in item.keys() and item[URL].startswith("http")
 
 
-def download(task_list, dir_path, config=None):
+def download(task_list, dir_path=None, config=None):
     '''
     :param tasks: 下载任务信息[{'url': url, 'file_name': file_name}, {...}, ...]
     :param dir_path: 下载目录
@@ -25,8 +29,6 @@ def download(task_list, dir_path, config=None):
     :return:
     '''
     print("----------- Start Download -----------")
-    if not os.path.exists(dir_path):
-        os.makedirs(dir_path)
     tasks = list(filter(filter_fun, task_list))
     total = len(tasks)
     downloaded = 0
@@ -47,9 +49,21 @@ def download(task_list, dir_path, config=None):
         referer_host = config[CONFIG_KEY_REFERER]
         opener.addheaders = [('Referer', referer_host)]
         print("使用referer: {}".format(referer_host))
+    if config is not None and CONFIG_KEY_UA in config.keys():
+        opener.addheaders.append(('user-agent', config[CONFIG_KEY_UA]))
+        print("使用user-agent")
+    print("Opener addheaders: ", opener.addheaders)
     urllib.request.install_opener(opener)
 
     for task in tasks:
+        # 优先下载到任务配置的目录
+        if DOWNLOAD_DIR in task.keys():
+            dir_path = task[DOWNLOAD_DIR]
+        elif dir_path == None:
+            dir_path = "download_undefined"
+        if not os.path.exists(dir_path):
+            os.makedirs(dir_path)
+
         if downloaded >= max_amount:
             break
         file_url = task[URL]
@@ -66,17 +80,25 @@ def download(task_list, dir_path, config=None):
             file_name = file_name.replace(name, "{}_{}".format(name, downloaded))
         print("file_name: {}".format(file_name))
 
-        # todo: 开启下载
-        try:
-            resp = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name))
-        except Exception as err:
-            print("----\nSomething wrong happened!")
-            print(type(err))
-            print(err.args)
-            print(err)
-            print("----")
-            failed.append(task)
-            pass
+        retry = 0
+        while (retry <= MAX_RETRY):
+            try:
+                resp = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name))
+                break
+            except Exception as err:
+                print("----\nSomething wrong happened!")
+                print("file_name: {}".format(file_name))
+                print("retry: ", retry)
+                retry += 1
+                print(type(err))
+                print(err.args)
+                print(err)
+                print("----")
+                if retry > MAX_RETRY:
+                    failed.append(task)
+                    print("重试无效!\n----")
+                    break
+                pass
         downloaded += 1
     print(u"Download finished {}/{}!\nSaved at \{}".format(downloaded, total, dir_path))
     if len(failed) > 0:
@@ -85,4 +107,3 @@ def download(task_list, dir_path, config=None):
         for t in failed:
             print(t)
     return failed
-
