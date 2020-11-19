@@ -6,6 +6,7 @@ import subprocess
 import sys
 from datetime import datetime
 from os.path import join
+import shutil
 
 sys.path.append('../../')
 from Downloader import downloader
@@ -13,8 +14,8 @@ from Common import local_properties
 from Common import utils
 
 # todo: 测试数量
-# TEST_AMOUNT = -1
-TEST_AMOUNT = 2
+TEST_AMOUNT = -1
+# TEST_AMOUNT = 2
 
 TASK_FILE = "tasks.json"
 DOWNLOAD_DIR = 'dir'
@@ -32,7 +33,6 @@ UA = "Mozilla/5.0"
 task_path = join(os.getcwd(), "tasks")
 
 # 任务结束后将文件名改掉!
-task_file = "{}\\tasks\{}".format(task_path, TASK_FILE)
 task_file_name = TASK_FILE
 
 for f in listdir(task_path):
@@ -59,7 +59,9 @@ except Exception as e:
 # print(dic)
 
 timestamp = datetime.now().microsecond
+to_open_path = "download"
 download_root = "download\download_{}".format(timestamp)
+book_name = "{}".format(timestamp)
 if 'book-name' in dic:
     book_name = utils.verify_file_name(dic['book-name'])
     download_root = "download\{}_{}".format(book_name, timestamp)
@@ -102,17 +104,23 @@ if len(result) > 0:
         failed_pages.append(item['page'])
     f.write("Failed pages: \n{}\n".format(failed_pages))
     f.close()
-
-# 改文件名
-new_file = join(task_path, "finished_{}_{}".format(timestamp, task_file_name))
-try:
-    os.rename(task_file, new_file)
-except BaseException as e:
-    print("Something went wrong: ", type(e), str(e))
+else:  # 没有失败的任务
+    # 改文件名
+    new_file = join(task_path, "finished_{}_{}".format(timestamp, task_file_name))
+    try:
+        # todo: 改文件名
+        # new_file = task_file
+        os.rename(task_file, new_file)
+        # 打包zip
+        zip_path = join(os.getcwd(), download_root)
+        shutil.make_archive(download_root, 'zip', zip_path)
+    except BaseException as e:
+        print("Something went wrong: ", type(e), str(e))
 
 # 打开下载目录
-to_open_path = "{}\{}\\".format(os.getcwd(), download_root)
 print("Open:{}".format(to_open_path))
-subprocess.Popen('explorer /select, {}'.format(to_open_path), shell=True)
+os.startfile(to_open_path)
+# popen_result = subprocess.Popen('explorer /select, {}'.format(to_open_path), shell=True)
+# print("p_result: ", popen_result)
 
 # input("按任意键结束")

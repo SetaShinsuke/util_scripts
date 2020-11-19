@@ -20,6 +20,18 @@ URL = 'url'
 def filter_fun(item):
     return type(item) is dict and URL in item.keys() and item[URL].startswith("http")
 
+downloading_filename = 'file'
+def _progress(block_num, block_size, total_size):
+    '''回调函数
+       @block_num: 已经下载的数据块
+       @block_size: 数据块的大小
+       @total_size: 远程文件的大小
+    '''
+    sys.stdout.write('\r>> Downloading %s %.1f%%' % (downloading_filename,
+                                                     float(block_num * block_size) / float(
+                                                         total_size) * 100.0))
+    sys.stdout.flush()
+
 
 def download(task_list, dir_path=None, config=None):
     '''
@@ -56,6 +68,8 @@ def download(task_list, dir_path=None, config=None):
     urllib.request.install_opener(opener)
 
     for task in tasks:
+        sys.stdout.write('\r')
+        sys.stdout.flush()
         # 优先下载到任务配置的目录
         if DOWNLOAD_DIR in task.keys():
             dir_path = task[DOWNLOAD_DIR]
@@ -83,7 +97,8 @@ def download(task_list, dir_path=None, config=None):
         retry = 0
         while (retry <= MAX_RETRY):
             try:
-                resp = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name))
+                downloading_filename = file_name
+                filepath, _ = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name), _progress)
                 break
             except Exception as err:
                 print("----\nSomething wrong happened!")
