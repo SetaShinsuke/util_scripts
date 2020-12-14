@@ -2,15 +2,18 @@
 import os
 import urllib.request
 import sys
+import socket
 
 sys.path.append('../')
 from Common import utils
 
 MAX_RETRY = 2
+TIMEOUT = 15
 
 CONFIG_KEY_PROXY = "proxy"
 CONFIG_KEY_REFERER = "referer"
 CONFIG_KEY_UA = "ua"
+CONFIG_KEY_COOKIE = "cookie"
 
 DOWNLOAD_DIR = 'dir'
 FILE_NAME = 'file_name'
@@ -20,7 +23,10 @@ URL = 'url'
 def filter_fun(item):
     return type(item) is dict and URL in item.keys() and item[URL].startswith("http")
 
+
 downloading_filename = 'file'
+
+
 def _progress(block_num, block_size, total_size):
     '''回调函数
        @block_num: 已经下载的数据块
@@ -64,6 +70,9 @@ def download(task_list, dir_path=None, config=None):
     if config is not None and CONFIG_KEY_UA in config.keys():
         opener.addheaders.append(('user-agent', config[CONFIG_KEY_UA]))
         print("使用user-agent")
+    if config is not None and CONFIG_KEY_COOKIE in config.keys():
+        opener.addheaders.append(('cookie', config[CONFIG_KEY_COOKIE]))
+        print("使用cookie")
     print("Opener addheaders: ", opener.addheaders)
     urllib.request.install_opener(opener)
 
@@ -81,7 +90,6 @@ def download(task_list, dir_path=None, config=None):
         if downloaded >= max_amount:
             break
         file_url = task[URL]
-        print("url: {}".format(file_url))
 
         if FILE_NAME in task.keys():
             file_name = task[FILE_NAME]
@@ -92,13 +100,20 @@ def download(task_list, dir_path=None, config=None):
         if os.path.exists("{}\{}".format(dir_path, file_name)):  # 检查重名
             name = file_name.split(".")[0]
             file_name = file_name.replace(name, "{}_{}".format(name, downloaded))
-        print("file_name: {}".format(file_name))
 
         retry = 0
         while (retry <= MAX_RETRY):
             try:
+                print("url: {}".format(file_url))
+                print("file_name: {}".format(file_name))
+                if retry > 0:
+                    print("retry: ", retry)
+                global downloading_filename
                 downloading_filename = file_name
-                filepath, _ = urllib.request.urlretrieve(file_url, "{}\{}".format(dir_path, file_name), _progress)
+                socket.setdefaulttimeout(TIMEOUT)
+                filepath, _ = urllib.request.urlretrieve(file_url,
+                                                         "{}\{}".format(dir_path, file_name),
+                                                         _progress)
                 break
             except Exception as err:
                 print("----\nSomething wrong happened!")
@@ -115,6 +130,9 @@ def download(task_list, dir_path=None, config=None):
                     break
                 pass
         downloaded += 1
+
+    sys.stdout.write('\r')
+    sys.stdout.flush()
     print(u"Download finished {}/{}!\nSaved at \{}".format(downloaded, total, dir_path))
     if len(failed) > 0:
         print("{}\{} download failed!!".format(len(failed), total))

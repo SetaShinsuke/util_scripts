@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 import re
 import urllib.parse
+import pyperclip
 
 
 def verify_file_name(file_name):
@@ -17,3 +18,6 @@ def url_encode(string, encoding='utf-8'):
 
 def url_decode(string, encoding='utf-8'):
     return urllib.parse.unquote(string, encoding)
+
+def copy_to_clipboard(string):
+    pyperclip.copy(string)
