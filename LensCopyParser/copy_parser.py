@@ -37,14 +37,15 @@ def main():
     utils.copy_to_clipboard(result_str)
     print("result str copied!")
 
-    return input("Success!\nPress ["+ FLAG +"] to rename again\nOtherwise to EXIT\n")
+    # return input("Success!\nPress ["+ FLAG +"] to rename again\nOtherwise to EXIT\n")
 
-is_resume = True
-while (is_resume) :
-    # print "\n" + str(resume)
-    result = main()
-    print("Input: " + str(result))
-    is_resume = (result == FLAG)
+main()
+# is_resume = True
+# while (is_resume) :
+#     # print "\n" + str(resume)
+#     result = main()
+#     print("Input: " + str(result))
+#     is_resume = (result == FLAG)
 
 
 
