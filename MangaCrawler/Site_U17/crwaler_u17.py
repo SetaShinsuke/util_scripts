@@ -2,32 +2,34 @@
 
 from urllib import request
 import json
+
+from Downloader.downloader import CONFIG_KEY_UA
 from u17_urls import BOOK_URL, CHAPTER_URL
 
+import sys
+import os
+from pathlib import Path
+
+sys.path.append('../../')
+from Downloader import downloader
+from Common import utils
+
+from datetime import datetime
+from os.path import join
+import shutil
+
 MAX_RETRY = 2
+FILE_TAIL = '-_1'
 header_dict = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.159 Safari/537.36'}
 
 
 def load_book():
+    # book_id = '53591'
     book_id = input("输入漫画ID: ")
     # 《超合金社团》ID: 53591
 
     book_url = BOOK_URL + "" + book_id
-    # book_url = 'http://app.u17.com/v3/appV3/android/phone/comic/detail_static_wrong'
-    # BOOK_API = "http://app.u17.com/v3/appV3/android/phone/comic/detail_static"
-    # book_url = BOOK_API
-    #
-    # args = {'android_id': '0A00270000130000', 'v': '3070099', 'model': 'VPhone',
-    #         'come_from': 'wandoujia'}
-    # args['comicid'] = book_id
-    # # args = {}
-    # print('args: %s', args)
-
-    # todo: 增加 Header 字段
-    # request = requests.get(book_url, args)
-    # print("url: %s", request.url)
-    # print("request: %s", request)
 
     req = request.Request(book_url, headers=header_dict)
     print("req: {}".format(req))
@@ -63,11 +65,11 @@ if (book_data):
     print('章节总数: {}'.format(len(chapter_list)))
 
     start = int(input('请输入开始章节: ')) - 1
-    end = int(input('请输入结束章节: ')) - 1
+    end = int(input('请输入结束章节: '))
     if (start < 0):
         start = 0
-    if (end >= len(chapter_list)):
-        end = len(chapter_list) - 1
+    if (end > len(chapter_list)):
+        end = len(chapter_list)
     sub_list = chapter_list[start: end]
     sub_chapter_total = len(sub_list)
 
@@ -123,3 +125,44 @@ if (book_data):
 
         print('chapter: ' + chapter['chapter_name'])
         print(chapter['tasks'])
+
+    # ----------
+    # 开始进行下载
+    # download\超合金社团_1123444-_1-_1
+    folder_name = utils.verify_file_name(comic_name)
+    download_root = "download\{}{}".format(folder_name, FILE_TAIL)
+    while (Path(download_root).is_dir()):  # 文件夹已存在
+        download_root = download_root + FILE_TAIL
+    to_open_path = "download"
+    print('正在开始下载, 目标目录: {}'.format(download_root))
+
+    for chapter in chapter_sorted:
+        chapter_name = chapter['chapter_name']
+        # download\超合金社团\第一话
+        dir = "{}\{}".format(download_root, chapter_name)
+        tasks = chapter['tasks']
+        config = {CONFIG_KEY_UA: header_dict['User-Agent']}
+        result = downloader.download(tasks,config=config, dir_path=download_root)
+        failed_pages = []
+        if len(result) > 0:
+            timestamp = datetime.now().microsecond
+            log_file = "{}\crwaler_log_{}.txt".format(download_root, timestamp)
+            f = open(log_file, "w+")
+            for item in result:
+                f.write("{}\n".format(item))
+                failed_pages.append(item['page'])
+            f.write("Failed pages: \n{}\n".format(failed_pages))
+            f.close()
+        else:  # 全部下载成功
+            try:
+                # 打包zip, 超合金社团-2.zip
+                zip_path = join(os.getcwd(), download_root)
+                no = len(download_root.split(FILE_TAIL)) - 1
+                shutil.make_archive('download\{}-{}'.format(comic_name, no), 'zip',
+                                    zip_path)
+            except BaseException as e:
+                print("Something went wrong: ", type(e), str(e))
+
+    # 打开下载目录
+    print("Open:{}".format(to_open_path))
+    os.startfile(to_open_path)
