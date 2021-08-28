@@ -21,3 +21,14 @@ def url_decode(string, encoding='utf-8'):
 
 def copy_to_clipboard(string):
     pyperclip.copy(string)
+
+# notNull = False: 允许不输入
+def requireInt(msg, notNull = False):
+    while 1:
+        userInput = input(msg)
+        try:
+            if len(userInput) == 0 and (not notNull):
+                return None
+            return int(userInput)
+        except ValueError:
+            print('请输入数字...')
