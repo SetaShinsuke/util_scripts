@@ -8,7 +8,7 @@ sys.path.append('../')
 from Common import utils
 
 MAX_RETRY = 2
-TIMEOUT = 15
+TIMEOUT = 30
 
 CONFIG_KEY_PROXY = "proxy"
 CONFIG_KEY_REFERER = "referer"

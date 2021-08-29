@@ -21,6 +21,7 @@ from Common import utils
 
 # todo: 测试数量
 TEST_AMOUNT = -1
+# TEST_AMOUNT = 1
 
 # 可配置项
 CONFIG = 'config'
@@ -42,17 +43,19 @@ task_file_name = TASK_FILE
 
 step = utils.requireInt('按( ? )个章节打包: ')
 
-if (step <= 0):
+if (not step or step <= 0):
     step = False
+elif (step == 1):  # 不整理
+    pass
 else:
-    # {'group_1': [{'chapter1': []}, {'chapter2': []}]..., 'group_2': ...}
+    # {'group_1': { 'config': {}, 'tasks': [{'chapter1': []}, {'chapter2': []}]..., 'group_2': ...}
     groups = {}
-    config = False
     for f in listdir(task_path):
         if (not f.startswith('tasks')):
             continue
         # 读取Task
         task_json = {}
+        config = False
         try:
             f_full = join(task_path, f)
             raw_str = open(f_full, 'r', encoding='utf-8').read()
@@ -71,25 +74,35 @@ else:
         try:
             index = int(f.split('.json')[0].split('tasks_')[-1])
             group = int(index // step)
-
+            # todo: 改名
             group_name = f'task_{group}'
             if (group_name in groups):
-                groups[group_name].append(task_json)
+                groups[group_name]['tasks'].append(task_json)
             else:
-                groups[group_name] = [task_json]
+                groups[group_name] = {'tasks': [task_json]}
+
+            if (config):
+                groups[group_name][CONFIG] = config
+                if (config[CONFIG_BOOK_NAME]):
+                    g_start = group * step + 1
+                    g_end = g_start + step - 1
+                    print(f'index: {index}, group: {group}, {g_start}-{g_end}')
+                    config[CONFIG_BOOK_NAME] = f'{config[CONFIG_BOOK_NAME]}[{g_start}-{g_end}]'
+            # todo: 删除
             os.remove(f_full)
         except BaseException as e:
             print(f'Sth wrong: {str(e)}, {e.args}')
     print('Tasks 已整理!')
     for task_group in groups:
         try:
-            tasks = groups[task_group]
+            tasks = groups[task_group]['tasks']
             tJson = {}
             for m in tasks:
                 for k in m:
                     tJson[k] = m[k]
-
-            print(tJson)
+            if (CONFIG in groups[task_group]):
+                tJson[CONFIG] = groups[task_group][CONFIG]
+            # print(tJson)
             with open(f'{join(task_path, task_group)}.json', 'w', encoding='utf8') as outfile:
                 json.dump(tJson, outfile, ensure_ascii=False)
         except BaseException as e:
@@ -98,10 +111,10 @@ else:
 to_open_path = "download"
 
 
-def handleTask(task_file):
+def handleTask(task_file, doZip):
     print(f'Handle task: {task_file}')
-    if (True):
-        return
+    # if (True):
+    #     return
 
     task_file = join(task_path, task_file_name)
     if not os.path.exists(task_file):
@@ -127,7 +140,9 @@ def handleTask(task_file):
         # 书名
         try:
             book_name = utils.verify_file_name(task_json[CONFIG][CONFIG_BOOK_NAME])
-            download_root = "download\{}_{}".format(book_name, timestamp)
+            download_root = "download\{}".format(book_name)
+            # while (os.path.isdir(download_root)):
+            #     download_root += f'{timestamp}'
         except BaseException:
             pass
         # referer
@@ -149,7 +164,7 @@ def handleTask(task_file):
         page_details = task_json[k]
         i = 0
         for p in page_details:
-            if TEST_AMOUNT > 0 and i > TEST_AMOUNT:
+            if TEST_AMOUNT > 0 and i >= TEST_AMOUNT:
                 break
             url = p['url']
             splits = url.split(":")
@@ -192,24 +207,35 @@ def handleTask(task_file):
             # todo: 改文件名
             # new_file = task_file
             os.rename(task_file, new_file)
+            if (not doZip):
+                return
             # 打包zip
             zip_path = join(os.getcwd(), download_root)
+            print(f'正在打包 Zip...[{zip_path}]')
             shutil.make_archive(download_root, 'zip', zip_path)
+            print((f'Zip 已打包!'))
         except BaseException as e:
             print("Something went wrong: ", type(e), str(e))
+    return download_root
 
 
 # main
+to_open = False
 for f in listdir(task_path):
     if f.startswith('task'):
         task_file_name = f
-        handleTask(f)
-        if (not step):
-            break
+        to_open = handleTask(f, step)
+        # if (not step):
+        #     break
 
 # 打开下载目录
+# todo: 打开文件夹
+print(f'To open: {to_open}')
+if (to_open):
+    to_open_path = to_open
 print("Open:{}".format(to_open_path))
 os.startfile(to_open_path)
+
 # popen_result = subprocess.Popen('explorer /select, {}'.format(to_open_path), shell=True)
 # print("p_result: ", popen_result)
 
