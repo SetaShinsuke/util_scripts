@@ -17,6 +17,7 @@ from Common import utils
 from datetime import datetime
 from os.path import join
 import shutil
+import cn2an
 
 MAX_RETRY = 2
 FILE_TAIL = '-_1'
@@ -75,12 +76,33 @@ if (book_data):
 
     print('start: {}, end: {}'.format(start, end))
 
+    # Zip包的开始结束序号[0-10]
+    pack_start = None
+    pack_end = None
     # 整理章节数据
+    cursor = ''
     for item in sub_list:
         name = item['name']
-        name = ''.join([i for i in name if not i.isdigit()]).replace('I', '').replace(
-            'V', '').replace(' ', '').replace('fcan', 'If I Can')
+        name = utils.verify_file_name(name)
+        # todo: 整合章节名
+        # name = ''.join([i for i in name if not i.isdigit()]).replace(' ', '_').replace('I', '').replace(
+        #     'V', '').replace('fcan', 'If I Can')
         # 这个不规则命名真的乌鸡鲅鱼
+        try:
+            num = name.split('回')[0].split('话')[0].split('第')[-1]
+            if (not num.isdigit()):
+                num = int(cn2an.cn2an(num))
+            cursor = f'{num:03d}'
+            name = f'{cursor}_{name}'
+            if (pack_start == None):
+                pack_start = num
+            pack_end = num
+        except BaseException as e:
+            # 插入了不规则命名的章节（番外等）
+            cursor += 'SP'
+            name = f'{cursor}_{name}'
+            pass
+
         image_total = item['image_total']
         chapter_id = item['chapter_id']
         # 整合章节名一样的子章节
@@ -88,6 +110,11 @@ if (book_data):
             chapter_sorted[-1]['chapter_ids'].append(chapter_id)
         else:
             chapter_sorted.append({'chapter_name': name, 'chapter_ids': [chapter_id]})
+    # Zip 范围
+    if (pack_start == None):
+        pack_start = f'SP{start + 1}'
+    if (pack_end == None):
+        pack_end = f'SP{end}'
 
     # -----------------------
     # 章节整理完毕
@@ -95,9 +122,9 @@ if (book_data):
     print('------------------------')
     # 挨个获取章节数据
     sub_index = 0
-    file_index = 0
     for chapter in chapter_sorted:
         chapter['tasks'] = []
+        file_index = 0
         for id in chapter['chapter_ids']:
             chapter_url = CHAPTER_URL + "" + id
             req = request.Request(chapter_url, headers=header_dict)
@@ -107,6 +134,7 @@ if (book_data):
                 try:
                     # 发送请求
                     print("正在获取[{}/{}]数据...".format(sub_index + 1, sub_chapter_total))
+                    print(chapter_url)
                     result = request.urlopen(req)
                     result = str(result.read(), encoding='utf-8')
                     result_json = json.loads(result)
@@ -114,7 +142,7 @@ if (book_data):
                     for img in image_list:
                         file_index += 1
                         chapter['tasks'].append(
-                            {'url': img['location'], 'file_name': '{:03d}.jpg'.format(file_index)})
+                            {'url': img['location'], 'file_name': f'{id}_{file_index:03d}.jpg'})
                     print('[{}/{}]数据已获取!'.format(sub_index + 1, sub_chapter_total))
                     sub_index += 1
                     break
@@ -124,7 +152,7 @@ if (book_data):
                     retry += 1
 
         print('chapter: ' + chapter['chapter_name'])
-        print(chapter['tasks'])
+        # print(chapter['tasks'])
 
     # ----------
     # 开始进行下载
@@ -142,7 +170,7 @@ if (book_data):
         dir = "{}\{}".format(download_root, chapter_name)
         tasks = chapter['tasks']
         config = {CONFIG_KEY_UA: header_dict['User-Agent']}
-        result = downloader.download(tasks,config=config, dir_path=download_root)
+        result = downloader.download(tasks, config=config, dir_path=dir)
         failed_pages = []
         if len(result) > 0:
             timestamp = datetime.now().microsecond
@@ -157,9 +185,17 @@ if (book_data):
             try:
                 # 打包zip, 超合金社团-2.zip
                 zip_path = join(os.getcwd(), download_root)
-                no = len(download_root.split(FILE_TAIL)) - 1
-                shutil.make_archive('download\{}-{}'.format(comic_name, no), 'zip',
-                                    zip_path)
+                no = f'{(len(download_root.split(FILE_TAIL)) - 1):02d}'
+                range = f'[{pack_start}'
+                if (pack_start != pack_end):
+                    range += f'-{pack_end}'
+                range += ']'
+                zip_name = f'download\\{comic_name}-{no}{range}'
+                # 检查重命名
+                while (os.path.exists(os.path.join(os.getcwd(), zip_name))):
+                    zip_name += datetime.now().microsecond
+                # download\超合金社团-02
+                shutil.make_archive(zip_name, 'zip', zip_path)
             except BaseException as e:
                 print("Something went wrong: ", type(e), str(e))
 

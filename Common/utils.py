@@ -7,6 +7,7 @@ import pyperclip
 def verify_file_name(file_name):
     file_name = file_name.replace('\\', '_').replace('/', '_')
     file_name = re.sub('[\/:*?"<>|]', '-', file_name)
+    file_name = file_name.replace('（', '(').replace('）', ')').replace(' ', '_').replace('：', ':')
     if (len(file_name) > 150):  # 文件名超长
         file_name = file_name[-149:]
     return file_name

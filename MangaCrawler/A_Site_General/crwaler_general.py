@@ -45,8 +45,8 @@ step = utils.requireInt('按( ? )个章节打包: ')
 
 if (not step or step <= 0):
     step = False
-elif (step == 1):  # 不整理
-    pass
+# elif (step == 1):  # 不整理
+#     pass
 else:
     # {'group_1': { 'config': {}, 'tasks': [{'chapter1': []}, {'chapter2': []}]..., 'group_2': ...}
     groups = {}
@@ -133,7 +133,6 @@ def handleTask(task_file, doZip):
     # 根文件夹名 \download\书名_2333450
     timestamp = datetime.now().microsecond
     download_root = "download\download_{}".format(timestamp)
-    book_name = "{}".format(timestamp)
     referer = False
     proxy = False
     if (task_json[CONFIG] and len(task_json[CONFIG]) > 0):
