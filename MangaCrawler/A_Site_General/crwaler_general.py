@@ -70,10 +70,10 @@ else:
             del task_json[CONFIG]
         # 分组
         index = -1
-        # tasks_0.json
+        # tasks_1.json
         try:
             index = int(f.split('.json')[0].split('tasks_')[-1])
-            group = int(index // step)
+            group = int((index - 1) // step)
             # todo: 改名
             group_name = f'task_{group}'
             if (group_name in groups):
@@ -83,12 +83,15 @@ else:
 
             if (config):
                 groups[group_name][CONFIG] = config
-                if (config[CONFIG_BOOK_NAME]):
-                    g_start = group * step + 1
-                    g_end = g_start + step - 1
-                    print(f'index: {index}, group: {group}, {g_start}-{g_end}')
-                    config[CONFIG_BOOK_NAME] = f'{config[CONFIG_BOOK_NAME]}[{g_start}-{g_end}]'
-            # todo: 删除
+            if (config[CONFIG_BOOK_NAME]):
+                g_start = group * step + 1
+            g_end = g_start + step - 1
+            print(f'index: {index}, group: {group}, {g_start}-{g_end}')
+            g_range = f'[{g_start}'
+            if(g_start != g_end):
+                g_range += f'-{g_end}'
+            g_range += ']'
+            config[CONFIG_BOOK_NAME] = f'{config[CONFIG_BOOK_NAME]}-{g_range}'
             os.remove(f_full)
         except BaseException as e:
             print(f'Sth wrong: {str(e)}, {e.args}')
@@ -230,8 +233,8 @@ for f in listdir(task_path):
 # 打开下载目录
 # todo: 打开文件夹
 print(f'To open: {to_open}')
-if (to_open):
-    to_open_path = to_open
+# if (to_open):
+#     to_open_path = to_open
 print("Open:{}".format(to_open_path))
 os.startfile(to_open_path)
 

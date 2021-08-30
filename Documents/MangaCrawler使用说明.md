@@ -17,8 +17,8 @@
     - 输入回车、输入0：不打包
     - 输入数字: 把 `tasks_xxx.json` 文件中的 xxx 当作序号进行分组
     > eg:
-    [ task_1.json, task_2.json, task_3.json ]
-    ↓ step = 2
+    [ task_1.json, task_2.json, task_3.json ]    
+    ↓ step = 2    
     [ task_1.json(1&2), task_2.json(3)]
 
 - **分组的部分目前可能有 bug，遇见了再说**
@@ -47,14 +47,15 @@ Tasks.json 格式：
 
 
 ## 二、有妖气
+1. 执行 `\MangaCrawler\Site\U17\crawler_u17.py`
 
-1. 根据提示，输入漫画ID `https://www.u17.com/comic/53591.html` 中 `/comic/` 后面的ID
+2. 根据提示，输入漫画ID `https://www.u17.com/comic/53591.html` 中 `/comic/` 后面的ID
 
-2. 输入开始、结束章节  
+3. 输入开始、结束章节  
     **注意！这里的【开始章节】和【结束章节】不是章节名里的序号！**  
     **而是章节真正的 Index ！**
 
-3. 将自动根据 [开始 - 结束] 进行打包 zip
+4. 将自动根据 [开始 - 结束] 进行打包 zip
 
 ### 自动分P说明：
 
