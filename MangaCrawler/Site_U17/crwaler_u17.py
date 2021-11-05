@@ -89,9 +89,11 @@ if (book_data):
         #     'V', '').replace('fcan', 'If I Can')
         # 这个不规则命名真的乌鸡鲅鱼
         try:
-            num = name.split('回')[0].split('话')[0].split('第')[-1]
+            num = name.split('系列章节_')[-1].split('回')[0].split('话')[0].split('章')[0].split('第')[-1]
             if (not num.isdigit()):
-                num = int(cn2an.cn2an(num))
+                # 'smart'模式识别的汉字更多
+                num = cn2an.cn2an(num, 'smart')
+            num = int(num)
             cursor = f'{num:03d}'
             name = f'{cursor}_{name}'
             if (pack_start == None):
@@ -178,7 +180,7 @@ if (book_data):
             f = open(log_file, "w+")
             for item in result:
                 f.write("{}\n".format(item))
-                failed_pages.append(item['page'])
+                failed_pages.append(item)
             f.write("Failed pages: \n{}\n".format(failed_pages))
             f.close()
         else:  # 全部下载成功
