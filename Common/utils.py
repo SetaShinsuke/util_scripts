@@ -2,7 +2,7 @@
 import re
 import urllib.parse
 import pyperclip
-
+import sys
 
 def verify_file_name(file_name):
     file_name = file_name.replace('\\', '_').replace('/', '_')
@@ -33,3 +33,13 @@ def requireInt(msg, notNull = False):
             return int(userInput)
         except ValueError:
             print('请输入数字...')
+
+def flush(content):
+    sys.stdout.write(f'\r>>{content}')
+    sys.stdout.flush()
+    # time.sleep(1)
+    # flush_reset()
+
+def flush_reset():
+    sys.stdout.write(f'\n')
+    sys.stdout.flush()

@@ -29,9 +29,9 @@ downloading_filename = 'file'
 
 def _progress(block_num, block_size, total_size):
     '''回调函数
-       @block_num: 已经下载的数据块
-       @block_size: 数据块的大小
-       @total_size: 远程文件的大小
+       :param block_num: 已经下载的数据块
+       :param block_size: 数据块的大小
+       :param total_size: 远程文件的大小
     '''
     sys.stdout.write('\r>> Downloading %s %.1f%%' % (downloading_filename,
                                                      float(block_num * block_size) / float(
