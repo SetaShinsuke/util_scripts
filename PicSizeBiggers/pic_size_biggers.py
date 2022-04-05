@@ -1,6 +1,9 @@
 # -*- coding: utf-8 -*-
 import os
 from os import listdir
+import sys
+
+sys.path.append('../')
 from Common.utils import flush, flush_reset
 
 path = input('请输入图片目录:')
