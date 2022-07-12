@@ -56,7 +56,8 @@ def download(task_list, dir_path=None, config=None):
     print("max_amount: {}".format(max_amount))
 
     opener = urllib.request.build_opener()
-    if config is not None and CONFIG_KEY_PROXY in config.keys():
+    if config is not None and CONFIG_KEY_PROXY in config.keys() and len(
+            config[CONFIG_KEY_PROXY]) > 0:
         # 添加 http 代理
         proxy_server = config[CONFIG_KEY_PROXY]
         proxy = urllib.request.ProxyHandler({'http': proxy_server})

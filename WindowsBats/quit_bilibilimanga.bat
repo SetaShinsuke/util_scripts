@@ -1,0 +1,1 @@
+taskkill /im BilibiliManga.exe /t /f

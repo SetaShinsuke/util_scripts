@@ -1,0 +1,1 @@
+explorer.exe shell:appsFolder\17123LancerComet.UWP_2spy3kgnr5nmm!App
