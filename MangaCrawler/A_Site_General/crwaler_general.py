@@ -37,6 +37,7 @@ URL = 'url'
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.93 Safari/537.36 Edg/90.0.818.56"
 
 task_path = join(os.getcwd(), "tasks")
+book_name = 'unknown'
 
 # 任务结束后将文件名改掉!
 task_file_name = TASK_FILE
@@ -48,6 +49,11 @@ if (not step or step <= 0):
 # elif (step == 1):  # 不整理
 #     pass
 else:
+    group_init = utils.requireInt('请设置 .zip 起始序号 (输入空则自动计算): ')
+    task_start = False
+    if (group_init):
+        task_start = utils.requireInt('请设置起始 task 序号: ', True)
+
     # {'group_1': { 'config': {}, 'tasks': [{'chapter1': []}, {'chapter2': []}]..., 'group_2': ...}
     groups = {}
     for f in listdir(task_path):
@@ -73,7 +79,11 @@ else:
         # tasks_1.json
         try:
             index = int(f.split('.json')[0].split('tasks_')[-1])
-            group = int((index - 1) // step)
+            if (group_init):
+                group = group_init + int((index - task_start) // step)
+            else:
+                group = int((index - 1) // step)
+
             # todo: 改名
             group_name = f'task_{group}'
             if (group_name in groups):
@@ -83,15 +93,18 @@ else:
 
             if (config):
                 groups[group_name][CONFIG] = config
-            if (config[CONFIG_BOOK_NAME]):
+            # if (config[CONFIG_BOOK_NAME]):
+            if (group_init):
+                g_start = task_start + (group - group_init) * step
+            else:
                 g_start = group * step + 1
             g_end = g_start + step - 1
             print(f'index: {index}, group: {group}, {g_start}-{g_end}')
             g_range = f'[{g_start}'
-            if(g_start != g_end):
+            if (g_start != g_end):
                 g_range += f'-{g_end}'
             g_range += ']'
-            config[CONFIG_BOOK_NAME] = f'{config[CONFIG_BOOK_NAME]}-{g_range}'
+            config[CONFIG_BOOK_NAME] = f'{config[CONFIG_BOOK_NAME]}-{group:03d}-{g_range}'
             os.remove(f_full)
         except BaseException as e:
             print(f'Sth wrong: {str(e)}, {e.args}')
@@ -199,12 +212,15 @@ def handleTask(task_file, doZip):
         f = open(log_file, "w+")
         for item in result:
             f.write("{}\n".format(item))
-            failed_pages.append(item['page'])
+            if ('page' in item):
+                failed_pages.append(item['page'])
+            else:
+                failed_pages.append(item)
         f.write("Failed pages: \n{}\n".format(failed_pages))
         f.close()
     else:  # 没有失败的任务
         # 改文件名
-        new_file = join(task_path, "finished_{}_{}".format(timestamp, task_file_name))
+        new_file = join(task_path, "finished_{}_{}_{}".format(timestamp, book_name, task_file_name))
         try:
             # todo: 改文件名
             # new_file = task_file
