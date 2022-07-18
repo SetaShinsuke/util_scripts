@@ -82,19 +82,23 @@ if (book_data):
     # 整理章节数据
     cursor = ''
     for item in sub_list:
+        # todo: index
+        index = chapter_list.index(item)
+
         name = item['name']
         name = utils.verify_file_name(name)
         # todo: 整合章节名
         # name = ''.join([i for i in name if not i.isdigit()]).replace(' ', '_').replace('I', '').replace(
         #     'V', '').replace('fcan', 'If I Can')
         # 这个不规则命名真的乌鸡鲅鱼
+        cursor = f'{(index + 1):03d}_'
         try:
             num = name.split('系列章节_')[-1].split('回')[0].split('话')[0].split('章')[0].split('第')[-1]
             if (not num.isdigit()):
                 # 'smart'模式识别的汉字更多
                 num = cn2an.cn2an(num, 'smart')
             num = int(num)
-            cursor = f'{num:03d}'
+            cursor += f'{num:03d}'
             name = f'{cursor}_{name}'
             if (pack_start == None):
                 pack_start = num
@@ -192,7 +196,7 @@ if (book_data):
                 if (pack_start != pack_end):
                     range += f'-{pack_end}'
                 range += ']'
-                zip_name = f'download\\{comic_name}-{no}{range}'
+                zip_name = f'download\\{comic_name}-{no}{range}[u17]'
                 # 检查重命名
                 while (os.path.exists(os.path.join(os.getcwd(), zip_name))):
                     zip_name += datetime.now().microsecond
