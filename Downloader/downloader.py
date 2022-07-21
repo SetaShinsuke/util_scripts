@@ -3,6 +3,7 @@ import os
 import urllib.request
 import sys
 import socket
+import urllib.parse
 
 sys.path.append('../')
 from Common import utils
@@ -91,6 +92,8 @@ def download(task_list, dir_path=None, config=None):
         if downloaded >= max_amount:
             break
         file_url = task[URL]
+        # todo: url encode
+        file_url = urllib.parse.quote_plus(file_url, safe='://')
 
         if FILE_NAME in task.keys():
             file_name = task[FILE_NAME]

@@ -6,6 +6,9 @@
 - 哔哩哔哩漫画
 - 动漫之家、漫画柜、creativeuncut、爱看漫画等
 
+## TODO:
+- 在 `config` 中增加分卷配置（每卷的第一话）
+
 ## 一、手动导入 Tasks.json
 1. 将 `tasks.json` 放在 `tasks` 目录（文件必须以“tasks”开头）  
     程序将依次执行 `tasks` 目录下所有的 `tasks_xxx.json` 文件  
