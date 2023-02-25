@@ -4,21 +4,26 @@ import urllib.request
 import sys
 import socket
 import urllib.parse
+import time
 
 sys.path.append('../')
 from Common import utils
 
-MAX_RETRY = 2
+MAX_RETRY = 4
 TIMEOUT = 30
 
 CONFIG_KEY_PROXY = "proxy"
 CONFIG_KEY_REFERER = "referer"
 CONFIG_KEY_UA = "ua"
 CONFIG_KEY_COOKIE = "cookie"
+CONFIG_KEY_SLEEP = 'sleep'
+CONFIG_KEY_URL_QUOTE = 'url_quote' # {'url_quote': ':/='} 表示不转义这三个字符
 
 DOWNLOAD_DIR = 'dir'
 FILE_NAME = 'file_name'
 URL = 'url'
+
+CH_UA_DEFAULT = '".Not/A)Brand";v="99", "Google Chrome";v="103", "Chromium";v="103"'
 
 
 def filter_fun(item):
@@ -53,6 +58,7 @@ def download(task_list, dir_path=None, config=None):
     downloaded = 0
     failed = []
     max_amount = total
+    sleep = 0
     # max_amount = 1
     print("max_amount: {}".format(max_amount))
 
@@ -75,6 +81,12 @@ def download(task_list, dir_path=None, config=None):
     if config is not None and CONFIG_KEY_COOKIE in config.keys():
         opener.addheaders.append(('cookie', config[CONFIG_KEY_COOKIE]))
         print("使用cookie")
+    if config is not None and CONFIG_KEY_SLEEP in config.keys():
+        sleep = config[CONFIG_KEY_SLEEP]
+        print(f'Sleep: {sleep}s/down')
+    # 添加默认的 ch-ua
+    opener.addheaders.append(('sec-ch-ua', CH_UA_DEFAULT))
+    print(f'使用 Sec-ch-ua: ${CH_UA_DEFAULT}')
     print("Opener addheaders: ", opener.addheaders)
     urllib.request.install_opener(opener)
 
@@ -92,8 +104,11 @@ def download(task_list, dir_path=None, config=None):
         if downloaded >= max_amount:
             break
         file_url = task[URL]
-        # todo: url encode
-        file_url = urllib.parse.quote_plus(file_url, safe='://')
+        # url encode
+        if config is not None and CONFIG_KEY_URL_QUOTE in config.keys():
+            quote_safe = config[CONFIG_KEY_URL_QUOTE]
+            print(f'Sleep: {sleep}s/down')
+            file_url = urllib.parse.quote(file_url, safe=quote_safe)
 
         if FILE_NAME in task.keys():
             file_name = task[FILE_NAME]
@@ -118,6 +133,8 @@ def download(task_list, dir_path=None, config=None):
                 filepath, _ = urllib.request.urlretrieve(file_url,
                                                          "{}\{}".format(dir_path, file_name),
                                                          _progress)
+                if (sleep and sleep > 0):
+                    time.sleep(sleep)
                 break
             except Exception as err:
                 print("----\nSomething wrong happened!")
