@@ -189,6 +189,7 @@ def handleTask(task_file, doZip):
     sleep = False
     # config = {'proxy': proxy, 'referer': REFERER_DMZJ, 'ua': UA}
     config = {'ua': UA}
+    book_name = None
     if (task_json[CONFIG] and len(task_json[CONFIG]) > 0):
         # 书名
         try:
@@ -268,6 +269,8 @@ def handleTask(task_file, doZip):
         f.close()
     else:  # 没有失败的任务
         # 改文件名
+        if(not book_name):
+            book_name = "Unknown"
         new_file = join(task_path, "finished_{}_{}_{}".format(timestamp, book_name, task_file_name))
         try:
             # todo: 改文件名
