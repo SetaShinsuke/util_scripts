@@ -26,6 +26,7 @@ TEST_AMOUNT = -1
 # 可配置项
 CONFIG = 'config'
 CONFIG_BOOK_NAME = 'book_name'
+CONFIG_VOL_NO = 'vol_no'
 CONFIG_REFERER = 'referer'
 CONFIG_PROXY = False
 CONFIG_SLEEP = 'sleep'
@@ -194,6 +195,9 @@ def handleTask(task_file, doZip):
         # 书名
         try:
             book_name = utils.verify_file_name(task_json[CONFIG][CONFIG_BOOK_NAME])
+            if CONFIG_VOL_NO in task_json[CONFIG][CONFIG_VOL_NO]:
+                vol_no = task_json[CONFIG][CONFIG_VOL_NO]
+                download_root = f'download\\{book_name}_{vol_no}'
             download_root = "download\{}".format(book_name)
             # while (os.path.isdir(download_root)):
             #     download_root += f'{timestamp}'
@@ -269,9 +273,10 @@ def handleTask(task_file, doZip):
         f.close()
     else:  # 没有失败的任务
         # 改文件名
-        if(not book_name):
+        if (not book_name):
             book_name = "Unknown"
-        new_file = join(task_path, "finished_{}_{}_{}".format(timestamp, book_name, task_file_name))
+        # new_file = join(task_path, "finished_{}_{}_{}".format(timestamp, book_name, task_file_name))
+        new_file = join(task_path, "finished_{}_{}".format(book_name, task_file_name))
         try:
             # todo: 改文件名
             # new_file = task_file
@@ -289,17 +294,15 @@ def handleTask(task_file, doZip):
 
 
 # main
-to_open = False
 for f in listdir(task_path):
     if f.startswith('task'):
         task_file_name = f
-        to_open = handleTask(f, step)
+        handleTask(f, step)
         # if (not step):
         #     break
 
-# 打开下载目录
-# todo: 打开文件夹
-print(f'To open: {to_open}')
+# 打开下载目录 /download
+# print(f'To open: {to_open}')
 # if (to_open):
 #     to_open_path = to_open
 print("Open:{}".format(to_open_path))
