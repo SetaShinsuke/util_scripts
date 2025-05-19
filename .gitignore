@@ -25,3 +25,5 @@
 /MangaCrawler/A_Site_General/download
 /MangaCrawler/A_Site_General/tasks
 /MangaCrawler/Site_U17/__pycache__/*.pyc
+/deprecated/RenameScript/*.spec
+/deprecated/RenameScript/__pycache__
