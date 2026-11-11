@@ -5,10 +5,10 @@ rem 强制获取管理员权限
 rem //设置变量 
 set NAME="以太网"
 rem //以下属性值可以根据需要更改
-set ADDR=172.24.51.73
+set ADDR=172.24.51.34
 set MASK=255.255.0.0
-set GATEWAY=172.24.50.73
-set DNS1=172.24.50.73
+set GATEWAY=172.24.50.34
+set DNS1=172.24.50.34
 set DNS2=8.8.8.8
 rem //以上属性依次为IP地址、子网掩码、网关、首选DNS、备用DNS
 
